@@ -7,53 +7,39 @@ import { https } from 'firebase-functions';
 const app = express();
 
 const serviceAccount = require('../../credentials/serviceAccountKey.json');
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   databaseURL: 'http://localhost:9000'
+// });
 admin.initializeApp({
-  credential:
-    // process.env.FUNCTIONS_EMULATOR === 'true'
-    //   ? admin.credential.applicationDefault()
-    //   : admin.credential.cert(serviceAccount),
-    admin.credential.cert(serviceAccount),
-  databaseURL:
-    process.env.FUNCTIONS_EMULATOR === 'true'
-      ? 'http://localhost:9000'
-      : JSON.parse(
-          process.env.FIREBASE_CONFIG ??
-            '{ databaseURL: "https://fir-node-e770c.firebaseio.com/" }',
-        ).databaseURL,
+  credential: admin.credential.cert(serviceAccount),
+  // databaseURL: 'https://fir-node-e770c.firebaseio.com/',
+  databaseURL: JSON.parse(
+    process.env.FIREBASE_CONFIG ??
+      '{ databaseURL: "https://fir-node-e770c.firebaseio.com/" }',
+  ).databaseURL,
 });
 const db = admin.database();
-// const ref = db.ref('users');
-const ref = db.ref();
 
 // Start writing Firebase Functions
 // https://firebase.google.com/docs/functions/typescript
 
 app.get('/hello', (request, response) => {
-  // axios
-  //   .get('http://localhost:9000/users.json')
-  //   .then((res) => console.log({ ...res.data }));
-  // console.log({ ref });
+  const ref = db.ref('users');
 
   ref.once(
     'value',
     (snapshot) => {
-      response.send(`Hello from Firebase!`);
-      console.log(snapshot.val());
+      response.write(`Hello from Firebase!`);
+      response.write(`\n`);
+      response.write(`${JSON.stringify(snapshot.val())}`);
+      response.end();
+      // response.send(`Hello from Firebase! ${JSON.stringify(snapshot.val())}`);
     },
     (error) => {
       console.log(`The read failed: ${error.message}`);
     },
   );
-
-  // response.send(`Hello from Firebase!`);
 });
-
-// app.get('/database', (_request, _response) => {
-//   const ref = functions.database.ref('users');
-
-//   ref.onCreate((snapshot, context) => {
-//     console.log(snapshot.val());
-//   });
-// });
 
 export const api = https.onRequest(app);

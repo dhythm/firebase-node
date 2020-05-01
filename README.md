@@ -33,3 +33,9 @@ curl -X PUT -d '{ "first": "Jack", "last": "Sparrow" }' \
 curl -X PUT -d @users.json 'http://localhost:9000/users.json'
 ```
 
+# Add firestore database
+```bash
+# Need relocation and create firestore data before
+firebase init firestore
+```
+
